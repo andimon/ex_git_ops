@@ -1,6 +1,9 @@
 defmodule ManageDevelopment do
   @default_ssh_path "~/.ssh/config"
-
+  def get_github_repos(user) when is_binary(user) do
+    headers = [Accept: "application/vnd.github+json"]
+    Req.get!("https://api.github.com/users/"<>user<>"/repos", headers: headers)
+  end
   def get_github_hosts(opts \\ []) do
     read_ssh_config(opts)
     |> Stream.filter(fn x -> is_github_host?(x) end)
