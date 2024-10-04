@@ -1,4 +1,5 @@
 defmodule ManageDevelopment do
+  alias ManageDevelopment.Models.Repo
   @default_ssh_path "~/.ssh/config"
   @default_repo_path "../"
   def clone_all_repos(opts \\ []) do
@@ -46,7 +47,7 @@ defmodule ManageDevelopment do
   end
 
   def filter_repo_info(%{"name" => name, "ssh_url" => ssh_url}, user) do
-    %{"name" => name, "ssh_url" => filter_ssh(ssh_url, user)}
+    Repo.new(name: name, ssh_url: filter_ssh(ssh_url, user))
   end
 
   defp filter_ssh(ssh_url, user)
