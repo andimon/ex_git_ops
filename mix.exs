@@ -3,7 +3,7 @@ defmodule ManageDevelopment.MixProject do
 
   def project do
     [
-      app: :manage_development,
+      app: :ex_git_ops,
       version: "0.1.0",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
