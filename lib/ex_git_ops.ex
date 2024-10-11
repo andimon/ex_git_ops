@@ -1,5 +1,6 @@
-defmodule ManageDevelopment do
+defmodule ExGitOps do
   alias ManageDevelopment.Models.Repo
+  alias ExGitOps.RestClient
   @default_ssh_path "~/.ssh/config"
   @default_repo_path "../"
   def clone_all_repos(opts \\ []) do
@@ -26,7 +27,7 @@ defmodule ManageDevelopment do
 
   def get_repos(host_name) when is_binary(host_name) do
     {:ok, %{status: 200, body: body}} =
-      Req.get("https://api.github.com/user/repos", headers: headers(host_name), params: params())
+      RestClient.get("https://api.github.com/user/repos", headers(host_name), params())
 
     body
     |> Enum.map(fn repo -> filter_repo_info(repo, host_name) end)
@@ -35,12 +36,12 @@ defmodule ManageDevelopment do
   defp headers(user) do
     [
       Accept: "application/vnd.github+json",
-      Authorization: "Bearer #{get_user_api_token(user)}",
+      Authorization: "Bearer #{get_git_user_api_token(user)}",
       "X-GitHub-Api-Version": "2022-11-28"
     ]
   end
 
-  def params() do
+  defp params() do
     [
       type: "all"
     ]
@@ -68,6 +69,7 @@ defmodule ManageDevelopment do
     |> (&(&1 == "github.com")).()
   end
 
+  @spec read_ssh_config() :: any()
   def read_ssh_config(opts \\ []) do
     expanded_path = Path.expand(get_path(opts))
 
@@ -152,7 +154,7 @@ defmodule ManageDevelopment do
 
   defp adjust(any), do: any
 
-  defp get_user_api_token(user), do: System.get_env("#{user}_api_token")
+  defp get_git_user_api_token(user), do: System.get_env("#{user}_api_token")
 
   defp boolean("yes"), do: true
   defp boolean("no"), do: false
