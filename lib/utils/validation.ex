@@ -1,4 +1,5 @@
 defmodule ExGitOps.Utils.Validations do
+  alias ExGitOps.RestClient
   def validate(true, _reason), do: :ok
   def validate(false, reason), do: {:error, reason}
 
@@ -78,4 +79,36 @@ defmodule ExGitOps.Utils.Validations do
 
   def is_git_username_set(user) when is_binary(user),
     do: not is_nil(System.get_env(user <> "_git_username"))
+
+  def is_git_api_token_valid(user) do
+    with :ok <- validate(is_git_api_token_set(user), :git_api_key_not_set) do
+      RestClient.get("https://api.github.com/user", headers(user), params())
+      |> case do
+        {:ok, %Req.Response{status: 200}} ->
+          true
+
+        _else ->
+          false
+      end
+    else
+      {:error, :git_api_key_not_set} -> false
+    end
+  end
+
+  # @TODO remove repetition
+  defp headers(user) do
+    [
+      Accept: "application/vnd.github+json",
+      Authorization: "Bearer #{get_git_user_api_token(user)}",
+      "X-GitHub-Api-Version": "2022-11-28"
+    ]
+  end
+
+  def params() do
+    [
+      type: "all"
+    ]
+  end
+
+  defp get_git_user_api_token(user), do: System.get_env("#{user}_git_api_token")
 end
