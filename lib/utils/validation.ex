@@ -52,4 +52,30 @@ defmodule ExGitOps.Utils.Validations do
 
   def is_git_api_token_set(user) when is_binary(user),
     do: not is_nil(System.get_env(user <> "_git_api_token"))
+
+  @doc """
+  Checks if the Git username for a given user is set in the environment.
+
+  This function takes a `user` (as a string), appends `"_git_username"` to it, and then checks if this environment variable is set. If the environment variable is set (i.e., it is not `nil`), the function returns `true`, indicating the Git username for the given `user` is present. Otherwise, it returns `false`.
+
+  ## Parameters
+    - `user`: A string representing the user for whom to check if the Git username is set.
+
+  ## Returns
+    - `true` if the Git username is set (i.e., the environment variable is not `nil`).
+    - `false` if the Git username is not set.
+
+  ## Examples
+
+      iex> System.put_env("andimon_git_username", "some_token")
+      iex> is_git_api_token_set("andimon")
+      true
+
+      iex> System.delete_env("andimon_git_username")
+      iex> is_git_api_token_set("andimon")
+      false
+  """
+
+  def is_git_username_set(user) when is_binary(user),
+    do: not is_nil(System.get_env(user <> "_git_username"))
 end
