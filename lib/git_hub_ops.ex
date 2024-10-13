@@ -1,37 +1,74 @@
-defmodule ExGitOps do
+defmodule ExGitOps.GitHubOps do
+  @behaviour ExGitOps.GitOps
   alias ExGitOps.Models.Repo
   alias ExGitOps.RestClient
-  @default_ssh_path "~/.ssh/config"
-  @default_repo_path "../"
-  def clone_all_repos(opts \\ []) do
-    get_host_names()
-    |> Stream.flat_map(&get_repos/1)
-    |> Enum.each(fn repo -> clone_repo(repo, opts) end)
-  end
+  @defaults %{ssh_path: "~/.ssh/config", repo_path: "../"}
 
-  def clone_repo(%{"ssh_url" => ssh_url}, opts) do
-    System.cmd("git", ["clone", ssh_url], cd: repo_path(opts))
-  end
-  @spec get_github_hosts() :: ay()
+  def get_repos(user_name) when is_binary(user_name) do
+    resp = RestClient.get("https://api.github.com/user/repos", headers(user_name), params())
 
-  def repo_path(opts) do
-    if Keyword.has_key?(opts, :repo_path) do
-      Keyword.get(opts, :repo_path)
-    else
-      @default_repo_path
+    case resp do
+      {:ok, %{status: 200, body: body}} ->
+        {:ok, Enum.map(body, fn repo -> filter_repo_info(repo, user_name) end)}
+
+      {:ok, %{status: 401}} ->
+        {:error, "unauthorized"}
+
+      _ ->
+        {:error, "failed to get repos"}
     end
   end
 
-  def get_host_names() do
-    Map.keys(get_github_hosts())
+  def clone_all_repos(opts \\ []) do
+    repos = get_all_repos()
+
+    case repos do
+      {:error, err} ->
+        {:error, err}
+
+      repos when is_list(repos) ->
+        Enum.each(repos, fn repo -> clone_repo(repo, opts) end)
+    end
   end
 
-  def get_repos(host_name) when is_binary(host_name) do
-    {:ok, %{status: 200, body: body}} =
-      RestClient.get("https://api.github.com/user/repos", headers(host_name), params())
+  defp get_all_repos() do
+    user_names = user_names()
 
-    body
-    |> Enum.map(fn repo -> filter_repo_info(repo, host_name) end)
+    Enum.reduce_while(user_names, [], fn username, acc ->
+      result = get_repos(username)
+
+      case result do
+        {:ok, repos} -> {:cont, repos ++ acc}
+        {:error, err} -> {:halt, {:error, err}}
+      end
+    end)
+  end
+
+  def clone_repo(%Repo{ssh_url: ssh_url}, opts) do
+    %{repo_path: repo_path} = Enum.into(opts, @defaults)
+    output = System.cmd("git", ["clone", ssh_url], cd: repo_path)
+
+    case output do
+      {_collectible, 0} -> :ok
+      {collectible, _} -> {:error, collectible}
+    end
+  end
+
+  def default_repo_path(), do: @defaults[:repo_path]
+
+  def user_names() do
+    github_users = System.get_env("github_users")
+
+    if is_nil(github_users) do
+      {:error, "github users not defined"}
+    else
+      parse_user_names(github_users)
+    end
+  end
+
+  defp parse_user_names(github_users) do
+    String.split(github_users, ":")
+    |> Enum.map(&String.trim/1)
   end
 
   defp headers(user) do
@@ -154,7 +191,7 @@ defmodule ExGitOps do
 
   defp adjust(any), do: any
 
-  defp get_git_user_api_token(user), do: System.get_env("#{user}_api_token")
+  defp get_git_user_api_token(user), do: System.get_env("#{user}_git_api_token")
 
   defp boolean("yes"), do: true
   defp boolean("no"), do: false
