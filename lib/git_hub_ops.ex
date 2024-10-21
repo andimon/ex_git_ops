@@ -197,5 +197,5 @@ defmodule ExGitOps.GitHubOps do
   defp boolean("no"), do: false
 
   defp get_path([{:ssh_path, path}]) when is_binary(path), do: path
-  defp get_path(_), do: @default_ssh_path
+  defp get_path(_), do: default_repo_path()
 end
