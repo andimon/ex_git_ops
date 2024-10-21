@@ -12,7 +12,6 @@ defmodule ExGitOps do
   def clone_repo(%{"ssh_url" => ssh_url}, opts) do
     System.cmd("git", ["clone", ssh_url], cd: repo_path(opts))
   end
-  @spec get_github_hosts() :: ay()
 
   def repo_path(opts) do
     if Keyword.has_key?(opts, :repo_path) do
