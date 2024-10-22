@@ -1,8 +1,30 @@
 defmodule ExGitOps do
   alias ExGitOps.Models.Repo
+  alias ExGitOps.Models
+  alias ExGitOps.Configurator
   alias ExGitOps.RestClient
   @default_ssh_path "~/.ssh/config"
   @default_repo_path "../"
+
+  def set_user(%Models.User{} = user, opts \\ []) do
+    Configurator.User.set_user(user,opts)
+  end
+
+  def set_email(email, opts \\ []) do
+    Models.User.new()
+    |> Models.User.set_email(email)
+    |> set_user()
+  end
+
+  def set_name(name, opts \\ []) do
+    Models.User.new()
+    |> Models.User.set_name(name)
+    |> set_user()
+  end
+
+
+
+
   def clone_all_repos(opts \\ []) do
     get_host_names()
     |> Stream.flat_map(&get_repos/1)
