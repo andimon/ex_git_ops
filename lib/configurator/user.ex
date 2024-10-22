@@ -6,18 +6,6 @@ defmodule ExGitOps.Configurator.User do
     |> apply_changes()
   end
 
-  def set_name(name, opts \\ []) do
-    User.new()
-    |> User.set_name(name)
-    |> set_user()
-  end
-
-  def set_email(name, opts \\ []) do
-    User.new()
-    |> User.set_email(name)
-    |> set_user()
-  end
-
   defp apply_changes(%User{} = user, opts \\ []) do
     user
     |> Map.from_struct()
@@ -40,20 +28,22 @@ defmodule ExGitOps.Configurator.User do
   end
 
   def filter_results(results) do
-    {successes, errors} = Enum.split_with(results, fn
-      {:error, _} -> false
-      {:ok, _}-> true
-    end)
+    {successes, errors} =
+      Enum.split_with(results, fn
+        {:error, _} -> false
+        {:ok, _} -> true
+      end)
 
     case errors do
       [] -> {:ok, get_status_message(successes)}
-      [_|_] -> {:error, get_status_message(successes)+ " " + get_status_message(errors)}
+      [_ | _] -> {:error, get_status_message(successes) + " " + get_status_message(errors)}
     end
   end
 
   def get_status_message(statuses) when is_list(statuses) do
     Enum.map_join(statuses, " ", &get_status_message/1)
   end
-  def get_status_message({:ok,message}) when is_binary(message), do: message
-  def get_status_message({:error,message}) when is_binary(message), do: message
+
+  def get_status_message({:ok, message}) when is_binary(message), do: message
+  def get_status_message({:error, message}) when is_binary(message), do: message
 end
