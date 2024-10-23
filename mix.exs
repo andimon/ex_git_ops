@@ -22,6 +22,7 @@ defmodule ExGitOps.MixProject do
   defp deps do
     [
       {:req, "~> 0.5.6"},
+      {:mox, "~> 1.0", only: :test},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end

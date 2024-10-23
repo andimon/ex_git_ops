@@ -1,5 +1,15 @@
 defmodule ExGitOps.Utils.Validations do
   alias ExGitOps.RestClient
+
+  def valid_git_repo?(repo_path) when is_binary(repo_path) do
+    result = System.cmd("git", ["rev-parse", "--is-inside-work-tree"], cd: repo_path)
+
+    case result do
+      {"true\n", 0} -> true
+      _ -> false
+    end
+  end
+
   def validate(true, _reason), do: :ok
   def validate(false, reason), do: {:error, reason}
 

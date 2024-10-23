@@ -6,24 +6,91 @@ defmodule ExGitOps do
   @default_ssh_path "~/.ssh/config"
   @default_repo_path "../"
 
+  @doc """
+  Sets the GIT user information globally or locally within a specified repository.
+
+  If no `repo_path` is provided, the user configuration is applied globally. If a `repo_path` is provided, the user configuration will only apply within the specified GIT repository.
+
+  ## Parameters
+
+  * `user` - A `%ExGitOps.Models.User{}` struct representing the user information to be configured (e.g., name, email).
+  * `opts` - A keyword list of options.
+
+  ## Options
+
+  * `:repo_path` - A string specifying the path to the GIT repository where the user configuration should be applied locally. If omitted, the configuration is applied globally.
+
+  ## Example
+
+  ```elixir
+  # Configure user globally
+  set_user(%ExGitOps.Models.User{name: "John Doe", email: "john@example.com"})
+
+  # Configure user for a specific repository
+  set_user(%Models.User{name: "John Doe", email: "john@example.com"}, repo_path: "/path/to/repo")
+  """
+
   def set_user(%Models.User{} = user, opts \\ []) do
-    Configurator.User.set_user(user,opts)
+    Configurator.User.set_user(user, opts)
   end
 
-  def set_email(email, opts \\ []) do
+  @doc """
+  Sets the GIT user's email configuration globally or locally, based on the provided options.
+
+  If no `repo_path` is specified, the email configuration is applied globally. If a `repo_path` is provided, the email is configured for the specified GIT repository.
+
+  ## Parameters
+
+  * `email` - A string representing the email address to be configured.
+  * `opts` - A keyword list of options.
+
+  ## Options
+
+  * `:repo_path` - A string specifying the path to the GIT repository where the email configuration should be applied locally. If omitted, the email is configured globally.
+
+  ## Example
+
+  ```elixir
+  # Set email globally
+  set_user_email("john@example.com")
+
+  # Set email for a specific repository
+  set_user_email("john@example.com", repo_path: "/path/to/repo")
+  """
+  def set_user_email(email, opts \\ []) do
     Models.User.new()
     |> Models.User.set_email(email)
-    |> set_user()
+    |> set_user(opts)
   end
 
-  def set_name(name, opts \\ []) do
+  @doc """
+  Sets the GIT username configuration globally or locally, based on the provided options.
+
+  If no `repo_path` is specified, the username configuration is applied globally. If a `repo_path` is provided, the username is configured for the specified GIT repository.
+
+  ## Parameters
+
+  * `name` - A string representing the username to be configured.
+  * `opts` - A keyword list of options.
+
+  ## Options
+
+  * `:repo_path` - A string specifying the path to the GIT repository where the username configuration should be applied locally. If omitted, the username is configured globally.
+
+  ## Example
+
+  ```elixir
+  # Set username globally
+  set_user_name("John Doe")
+
+  # Set username for a specific repository
+  set_user_name("John Doe", repo_path: "/path/to/repo")
+  """
+  def set_user_name(name, opts \\ []) do
     Models.User.new()
     |> Models.User.set_name(name)
-    |> set_user()
+    |> set_user(opts)
   end
-
-
-
 
   def clone_all_repos(opts \\ []) do
     get_host_names()

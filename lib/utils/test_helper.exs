@@ -1,3 +1,3 @@
 Mox.defmock(SystemBehaviourMock, for: SystemBehaviour)
-Application.put_env(:configurator, :cmd, SystemBehaviourMock)
+Application.put_env(:bound, :System, SystemBehaviourMock)
 ExUnit.start()
